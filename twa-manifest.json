@@ -1,6 +1,6 @@
 {
-  "packageId": "localhost_4173.twa",
-  "host": "drift-carpenter-prevail.ngrok-free.app",
+  "packageId": "app.vercel.habit_tracker_ten_psi_87.twa",
+  "host": "habit-tracker-ten-psi-87.vercel.app",
   "name": "Habit Tracker",
   "launcherName": "Habits",
   "display": "standalone",
@@ -13,9 +13,8 @@
   "backgroundColor": "#FFFFFF",
   "enableNotifications": true,
   "startUrl": "/",
-  "iconUrl": "http://localhost:4173/icons/icon-512.png",
-  "maskableIconUrl": "http://localhost:4173/icons/icon-512.png",
-  "monochromeIconUrl": "https://drift-carpenter-prevail.ngrok-free.app/icons/icon-512.png",
+  "iconUrl": "https://habit-tracker-ten-psi-87.vercel.app/icons/icon-512.png",
+  "maskableIconUrl": "https://habit-tracker-ten-psi-87.vercel.app/icons/icon-512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "C:\\Users\\DELL\\Documents\\habit-tracker\\habit-tracker\\android.keystore",
@@ -25,16 +24,23 @@
   "appVersionCode": 1,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "http://localhost:4173/manifest.webmanifest",
+  "webManifestUrl": "https://habit-tracker-ten-psi-87.vercel.app/manifest.webmanifest",
   "fallbackType": "customtabs",
-  "features": {},
+  "features": {
+    "playBilling": {
+      "enabled": true
+    },
+    "locationDelegation": {
+      "enabled": true
+    }
+  },
   "alphaDependencies": {
     "enabled": false
   },
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
-  "fullScopeUrl": "http://localhost:4173/",
+  "fullScopeUrl": "https://habit-tracker-ten-psi-87.vercel.app/",
   "minSdkVersion": 21,
   "orientation": "portrait",
   "fingerprints": [],

@@ -34,7 +34,7 @@
         \"relation\": [\"delegate_permission/common.handle_all_urls\"],
         \"target\": {
             \"namespace\": \"web\",
-            \"site\": \"https://drift-carpenter-prevail.ngrok-free.app\"
+            \"site\": \"https://habit-tracker-ten-psi-87.vercel.app\"
         }
     }]
     

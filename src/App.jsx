@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { getHabits, getCompletions, addHabit, deleteHabit, toggleCompletion } from './db'
 import {
   supabase, getUser, signIn, signUp, signOut,
@@ -26,17 +26,22 @@ function uid() { return 'h' + Date.now() + Math.floor(Math.random() * 999999) }
 function AuthScreen({ onAuth }) {
   const [mode, setMode]       = useState('login')
   const [email, setEmail]     = useState('')
-  const [password, setPass]   = useState('')
+  const [showPass, setShowPass] = useState(false)
   const [error, setError]     = useState('')
   const [loading, setLoading] = useState(false)
+  const passRef               = useRef(null)   // password never stored in React state
 
   async function handleSubmit() {
+    // Read password directly from DOM — never lives in component state
+    const password = passRef.current?.value || ''
     if (!email.trim() || !password.trim()) { setError('Please fill in both fields.'); return }
     if (password.length < 6) { setError('Password must be at least 6 characters.'); return }
     setError(''); setLoading(true)
     try {
       if (mode === 'login') await signIn(email.trim(), password)
       else await signUp(email.trim(), password)
+      // Wipe password field from DOM immediately after use
+      if (passRef.current) passRef.current.value = ''
       onAuth()
     } catch (e) {
       setError(e.message || 'Something went wrong. Please try again.')
@@ -44,19 +49,31 @@ function AuthScreen({ onAuth }) {
     setLoading(false)
   }
 
+  function handleModeSwitch(m) {
+    setMode(m)
+    setError('')
+    // Clear password field when switching modes
+    if (passRef.current) passRef.current.value = ''
+  }
+
   return (
     <div style={{ minHeight:'100dvh', display:'flex', alignItems:'center', justifyContent:'center', padding:20, background:'var(--bg)' }}>
       <div style={{ width:'100%', maxWidth:400 }}>
+
+        {/* Logo */}
         <div style={{ textAlign:'center', marginBottom:32 }}>
           <div style={{ fontSize:52, marginBottom:10 }}>✅</div>
           <div style={{ fontSize:24, fontWeight:700, color:'var(--brand)' }}>Habit Tracker</div>
           <div style={{ fontSize:14, color:'var(--text-muted)', marginTop:4 }}>Build better habits, every day</div>
         </div>
 
+        {/* Card */}
         <div style={{ background:'var(--bg-card)', border:'var(--border)', borderRadius:16, padding:'1.75rem 1.5rem', boxShadow:'0 4px 24px rgba(0,0,0,.07)' }}>
+
+          {/* Toggle */}
           <div style={{ display:'flex', background:'var(--bg-muted)', borderRadius:10, padding:4, marginBottom:24 }}>
             {['login','signup'].map(m => (
-              <button key={m} onClick={() => { setMode(m); setError('') }} style={{
+              <button key={m} onClick={() => handleModeSwitch(m)} style={{
                 flex:1, padding:'8px 0', border:'none', borderRadius:8, fontSize:13, fontWeight:600,
                 background: mode===m ? 'var(--bg-card)' : 'transparent',
                 color: mode===m ? 'var(--text)' : 'var(--text-muted)',
@@ -66,25 +83,61 @@ function AuthScreen({ onAuth }) {
             ))}
           </div>
 
+          {/* Email */}
           <div style={{ marginBottom:14 }}>
-            <label style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:6 }}>Email</label>
-            <input type="email" placeholder="you@example.com" value={email}
+            <label style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:6 }}>
+              Email
+            </label>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              value={email}
               onChange={e => setEmail(e.target.value)}
-              onKeyDown={e => e.key==='Enter' && handleSubmit()} autoFocus/>
-          </div>
-          <div style={{ marginBottom: error ? 12 : 20 }}>
-            <label style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:6 }}>Password</label>
-            <input type="password" placeholder="Min. 6 characters" value={password}
-              onChange={e => setPass(e.target.value)}
-              onKeyDown={e => e.key==='Enter' && handleSubmit()}/>
+              onKeyDown={e => e.key==='Enter' && handleSubmit()}
+              autoComplete="email"
+              autoFocus
+            />
           </div>
 
+          {/* Password — uses ref, NOT state */}
+          <div style={{ marginBottom: error ? 12 : 20 }}>
+            <label style={{ fontSize:11, fontWeight:600, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'.05em', display:'block', marginBottom:6 }}>
+              Password
+            </label>
+            <div style={{ position:'relative' }}>
+              <input
+                ref={passRef}
+                type={showPass ? 'text' : 'password'}
+                placeholder="Min. 6 characters"
+                onKeyDown={e => e.key==='Enter' && handleSubmit()}
+                autoComplete={mode==='login' ? 'current-password' : 'new-password'}
+                style={{ paddingRight:44 }}
+              />
+              {/* Show/hide toggle */}
+              <button
+                type="button"
+                onClick={() => setShowPass(p => !p)}
+                style={{
+                  position:'absolute', right:10, top:'50%', transform:'translateY(-50%)',
+                  background:'none', border:'none', cursor:'pointer',
+                  fontSize:16, color:'var(--text-muted)', padding:'2px 4px',
+                  lineHeight:1
+                }}
+                title={showPass ? 'Hide password' : 'Show password'}
+              >
+                {showPass ? '🙈' : '👁️'}
+              </button>
+            </div>
+          </div>
+
+          {/* Error */}
           {error && (
             <div style={{ background:'#FEE2E2', border:'1px solid #FECACA', borderRadius:8, padding:'9px 12px', fontSize:13, color:'#991B1B', marginBottom:16 }}>
               ⚠️ {error}
             </div>
           )}
 
+          {/* Submit */}
           <button onClick={handleSubmit} disabled={loading} style={{
             width:'100%', padding:'13px', border:'none', borderRadius:10,
             background: loading ? 'var(--bg-muted)' : 'var(--brand)',
@@ -100,6 +153,7 @@ function AuthScreen({ onAuth }) {
             </div>
           )}
         </div>
+
         <div style={{ textAlign:'center', marginTop:16, fontSize:12, color:'var(--text-muted)' }}>
           Data stored securely · Works offline too
         </div>
@@ -111,14 +165,14 @@ function AuthScreen({ onAuth }) {
 // ─── Main App ─────────────────────────────────────────────────────────────────
 
 export default function App() {
-  const [tab, setTab]         = useState('today')
-  const [habits, setHabits]   = useState([])
-  const [comps, setComps]     = useState({})
-  const [user, setUser]       = useState(null)
-  const [ready, setReady]     = useState(false)
-  const [syncing, setSyncing] = useState(false)
+  const [tab, setTab]               = useState('today')
+  const [habits, setHabits]         = useState([])
+  const [comps, setComps]           = useState({})
+  const [user, setUser]             = useState(null)
+  const [ready, setReady]           = useState(false)
+  const [syncing, setSyncing]       = useState(false)
   const [authChecked, setAuthChecked] = useState(false)
-  const [syncError, setSyncError]     = useState('')
+  const [syncError, setSyncError]   = useState('')
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
@@ -151,25 +205,18 @@ export default function App() {
     try {
       const { habits: ch, comps: cc } = await pullUserData(active.id)
       if (ch.length) {
-        // Cloud has data — use it as source of truth
         setHabits(ch); setComps(cc)
       } else {
-        // No cloud data — push local up
         const local = await getHabits()
         const lc    = await getCompletions()
         if (local.length) {
-          // Push habits first — must succeed before completions
-          for (const h of local) {
-            await pushHabit(h, active.id)  // throws on error now
-          }
-          // Habits confirmed in cloud — safe to push completions
+          for (const h of local) await pushHabit(h, active.id)
           for (const [date, ids] of Object.entries(lc))
             for (const id of ids)
               if (local.find(h => h.id === id))
                 await pushCompletion(id, date, active.id)
           setHabits(local); setComps(lc)
         } else {
-          // Fresh account — seed and push
           const seeded = await seedDefaults(active.id)
           setHabits(seeded); setComps({})
         }
@@ -190,9 +237,7 @@ export default function App() {
       { id: uid(), name: 'Meditate',    ei: 4, ci: 5, ti: 0 },
     ]
     await Promise.all(seeds.map(h => addHabit(h)))
-    if (userId) {
-      for (const h of seeds) await pushHabit(h, userId)  // sequential, throws on error
-    }
+    if (userId) for (const h of seeds) await pushHabit(h, userId)
     return seeds
   }
 
@@ -213,12 +258,8 @@ export default function App() {
     const h = { id: uid(), ...habit }
     await addHabit(h)
     if (user) {
-      try {
-        await pushHabit(h, user.id)  // awaited + throws on error
-      } catch (e) {
-        console.warn('handleAdd cloud push failed:', e.message)
-        // Habit exists locally — user can still use it offline
-      }
+      try { await pushHabit(h, user.id) }
+      catch (e) { console.warn('handleAdd cloud push failed:', e.message) }
     }
     setHabits(prev => [...prev, h])
   }
@@ -249,6 +290,7 @@ export default function App() {
     })
   }
 
+  // Blank screen while checking auth — prevents flash of login screen
   if (!authChecked || (!ready && !user)) {
     return <div style={{ minHeight:'100dvh', background:'var(--bg)' }}/>
   }
@@ -268,6 +310,7 @@ export default function App() {
   return (
     <div style={{ maxWidth:600, margin:'0 auto', minHeight:'100dvh', display:'flex', flexDirection:'column', background:'var(--bg)' }}>
 
+      {/* Top bar */}
       <header style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 16px', borderBottom:'var(--border)', background:'var(--bg-card)' }}>
         <div style={{ fontSize:16, fontWeight:700, color:'var(--brand)' }}>✅ Habits</div>
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
@@ -282,13 +325,14 @@ export default function App() {
         </div>
       </header>
 
-      {/* Visible sync error banner — no more silent failures */}
+      {/* Sync error banner */}
       {syncError && (
         <div style={{ background:'#FEE2E2', borderBottom:'1px solid #FECACA', padding:'8px 16px', fontSize:12, color:'#991B1B' }}>
           ⚠️ Sync error: {syncError} — working offline
         </div>
       )}
 
+      {/* Tabs */}
       <nav style={{ display:'flex', borderBottom:'var(--border)', background:'var(--bg-card)', position:'sticky', top:0, zIndex:10 }}>
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
@@ -301,6 +345,7 @@ export default function App() {
         ))}
       </nav>
 
+      {/* Views */}
       <main style={{ flex:1, padding:'1rem', overflowY:'auto' }}>
         {tab==='today'  && <Today  {...shared} />}
         {tab==='stats'  && <Stats  {...shared} />}

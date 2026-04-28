@@ -21,8 +21,8 @@ plugins {
 }
 
 def twaManifest = [
-    applicationId: 'localhost_4173.twa',
-    hostName: 'drift-carpenter-prevail.ngrok-free.app', // The domain being opened in the TWA.
+    applicationId: 'app.vercel.habit_tracker_ten_psi_87.twa',
+    hostName: 'habit-tracker-ten-psi-87.vercel.app', // The domain being opened in the TWA.
     launchUrl: '/', // The start path for the TWA. Must be relative to the domain.
     name: 'Habit Tracker', // The application name.
     launcherName: 'Habits', // The name shown on the Android Launcher.
@@ -52,9 +52,9 @@ def twaManifest = [
 
 android {
     compileSdkVersion 36
-    namespace "localhost_4173.twa"
+    namespace "app.vercel.habit_tracker_ten_psi_87.twa"
     defaultConfig {
-        applicationId "localhost_4173.twa"
+        applicationId "app.vercel.habit_tracker_ten_psi_87.twa"
         minSdkVersion 21
         targetSdkVersion 35
         versionCode 1
@@ -76,12 +76,12 @@ android {
             // The URL the Web Manifest for the Progressive Web App that the TWA points to. This
             // is used by Chrome OS and Meta Quest to open the Web version of the PWA instead of
             // the TWA, as it will probably give a better user experience for non-mobile devices.
-            resValue "string", "webManifestUrl", 'http://localhost:4173/manifest.webmanifest'
+            resValue "string", "webManifestUrl", 'https://habit-tracker-ten-psi-87.vercel.app/manifest.webmanifest'
         
 
         
             // This is used by Meta Quest.
-            resValue "string", "fullScopeUrl", 'http://localhost:4173/'
+            resValue "string", "fullScopeUrl", 'https://habit-tracker-ten-psi-87.vercel.app/'
         
 
         
@@ -207,6 +207,10 @@ repositories {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    
+        implementation 'com.google.androidbrowserhelper:locationdelegation:1.1.2'
+    
+        implementation 'com.google.androidbrowserhelper:billing:1.1.0'
     
         implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.6.2'
     
